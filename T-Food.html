@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อัปโหลดรูปและวิเคราะห์อาหารไทย</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #d35400;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin: 25px 0 15px;
+            font-size: 22px;
+        }
+
+        .upload-section {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #d35400;
+            background-color: #fff9f5;
+        }
+
+        #fileInput {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: #d35400;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #d35400;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+        }
+
+        button:hover {
+            background-color: #e67e22;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 300px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #d35400;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .food-result {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .food-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #d35400;
+        }
+
+        .food-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d35400;
+        }
+
+        .food-probability {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* เพิ่มสไตล์สำหรับประวัติ */
+        .history-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-item {
+            display: flex;
+            align-items: start;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+
+        .history-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .history-details {
+            flex: 1;
+        }
+
+        .history-timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .clear-history {
+            background-color: #e74c3c;
+            margin-top: 10px;
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .no-history {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>อัปโหลดรูปภาพเพื่อวิเคราะห์อาหารไทย</h1>
+
+        <div class="upload-section" id="dropArea">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-icon">📷</div>
+            <p>คลิกหรือลากไฟล์รูปภาพมาที่นี่</p>
+            <p style="font-size: 14px; color: #777;">รองรับไฟล์: JPG, PNG, GIF</p>
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <h2>รูปภาพที่เลือก</h2>
+            <img id="imagePreview" src="" alt="ตัวอย่างรูปภาพ">
+        </div>
+
+        <button id="uploadButton" onclick="uploadFile()" disabled>อัปโหลดและวิเคราะห์</button>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-spinner"></div>
+            <p>กำลังวิเคราะห์...</p>
+        </div>
+
+        <div class="result-section">
+            <h2>ผลการวิเคราะห์</h2>
+            <div class="food-result" id="foodResult"></div>
+            <pre id="result"></pre>
+        </div>
+
+        <!-- เพิ่มส่วนแสดงประวัติ -->
+        <div class="history-section">
+            <h2>ประวัติการวิเคราะห์</h2>
+            <div id="historyList"></div>
+            <button class="clear-history" onclick="clearHistory()">ล้างประวัติ</button>
+        </div>
+    </div>
+
+    <script>
+        // ตรวจสอบเมื่อมีการเลือกไฟล์
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const foodResult = document.getElementById('foodResult');
+        const result = document.getElementById('result');
+        const dropArea = document.getElementById('dropArea');
+
+        fileInput.addEventListener('change', previewFile);
+
+        // รองรับการลากไฟล์มาวาง (drag & drop)
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#d35400';
+            dropArea.style.backgroundColor = '#fff9f5';
+        });
+
+        dropArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#ddd';
+            dropArea.style.backgroundColor = 'white';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#ddd';
+            dropArea.style.backgroundColor = 'white';
+
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                previewFile();
+            }
+        });
+
+        function previewFile() {
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onloadend = function () {
+                    imagePreview.src = reader.result;
+                    previewContainer.style.display = 'block';
+                    uploadButton.disabled = false;
+                }
+
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                uploadButton.disabled = true;
+            }
+        }
+
+        async function uploadFile() {
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('กรุณาเลือกไฟล์');
+                return;
+            }
+
+            // แสดงตัวบ่งชี้การโหลด
+            loadingIndicator.style.display = 'block';
+            uploadButton.disabled = true;
+            result.style.display = 'none';
+            foodResult.style.display = 'none';
+            foodResult.innerHTML = '';
+
+            // อ่านไฟล์เป็น base64
+            const reader = new FileReader();
+            reader.onloadend = async function () {
+                const base64Data = reader.result.split(',')[1];  // เอาเฉพาะข้อมูลหลังเครื่องหมาย ','
+
+                // ส่งข้อมูลไปยัง API
+                const url = 'https://api.aiforthai.in.th/thaifood';
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Apikey': '0XJfFwEXe07F440O0i7AVDxSpN3jeOdN'
+                };
+                const data = { 'file': base64Data };
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const resultData = await response.json();
+
+                        // แสดงผลลัพธ์แบบสวยงาม
+                        if (resultData && resultData.objects && resultData.objects.length > 0) {
+                            foodResult.style.display = 'block';
+
+                            resultData.objects.forEach(item => {
+                                const foodCard = document.createElement('div');
+                                foodCard.className = 'food-card';
+
+                                const nameElem = document.createElement('div');
+                                nameElem.className = 'food-name';
+                                nameElem.textContent = item.label || 'ไม่ทราบชื่ออาหาร';
+
+                                const probElem = document.createElement('div');
+                                probElem.className = 'food-probability';
+                                const probability = parseFloat(item.score || 0) * 100;
+                                probElem.textContent = `ความเป็นไปได้: ${probability.toFixed(2)}%`;
+
+                                foodCard.appendChild(nameElem);
+                                foodCard.appendChild(probElem);
+                                foodResult.appendChild(foodCard);
+                            });
+
+                            // บันทึกลงประวัติ
+                            const simplifiedResult = resultData.objects.map(item => ({
+                                label: item.label,
+                                score: item.score
+                            }));
+                            saveToHistory(imagePreview.src, simplifiedResult);
+                        }
+
+                        // แสดงข้อมูล JSON ดิบเฉพาะ label และ score
+                        const simplifiedResult = resultData.objects.map(item => ({
+                            label: item.label,
+                            score: item.score
+                        }));
+                        result.textContent = JSON.stringify(simplifiedResult, null, 2);
+                        result.style.display = 'block';
+                    } else {
+                        result.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อกับ API';
+                        result.style.display = 'block';
+                    }
+                } catch (error) {
+                    result.textContent = 'เกิดข้อผิดพลาด: ' + error;
+                    result.style.display = 'block';
+                } finally {
+                    // ซ่อนตัวบ่งชี้การโหลด
+                    loadingIndicator.style.display = 'none';
+                    uploadButton.disabled = false;
+                }
+            };
+            reader.readAsDataURL(file);  // อ่านไฟล์เป็น base64
+        }
+
+        // เพิ่มฟังก์ชันจัดการประวัติ
+        function saveToHistory(imageData, results) {
+            const history = JSON.parse(localStorage.getItem('foodHistory') || '[]');
+            history.unshift({
+                image: imageData,
+                results: results,
+                timestamp: new Date().toISOString()
+            });
+
+            // เก็บประวัติสูงสุด 10 รายการ
+            if (history.length > 10) {
+                history.pop();
+            }
+
+            localStorage.setItem('foodHistory', JSON.stringify(history));
+            displayHistory();
+        }
+
+        function displayHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('foodHistory') || '[]');
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="no-history">ไม่มีประวัติการวิเคราะห์</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => {
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleString('th-TH');
+                const resultHtml = item.results.map(result =>
+                    `<div class="food-card">
+                        <div class="food-name">${result.label}</div>
+                        <div class="food-probability">ความเป็นไปได้: ${(result.score * 100).toFixed(2)}%</div>
+                    </div>`
+                ).join('');
+
+                return `
+                    <div class="history-item">
+                        <img src="${item.image}" class="history-image" alt="อาหาร">
+                        <div class="history-details">
+                            <div class="history-timestamp">${formattedDate}</div>
+                            ${resultHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearHistory() {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะล้างประวัติทั้งหมด?')) {
+                localStorage.removeItem('foodHistory');
+                displayHistory();
+            }
+        }
+
+        // แสดงประวัติเมื่อโหลดหน้า
+        displayHistory();
+    </script>
+</body>
+
+</html>

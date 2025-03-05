@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Text to Speech</title>
+     <style>
+          body {
+               font-family: 'Prompt', 'Sukhumvit Set', -apple-system, BlinkMacSystemFont, sans-serif;
+               background-color: #f5f8fa;
+               margin: 0;
+               padding: 20px;
+               color: #333;
+               line-height: 1.6;
+          }
+
+          .container {
+               max-width: 700px;
+               margin: 0 auto;
+               background-color: white;
+               border-radius: 10px;
+               padding: 30px;
+               box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          }
+
+          h2 {
+               color: #0066cc;
+               text-align: center;
+               margin-bottom: 25px;
+               font-size: 28px;
+          }
+
+          textarea {
+               width: 100%;
+               padding: 15px;
+               border: 1px solid #ddd;
+               border-radius: 8px;
+               font-size: 16px;
+               resize: vertical;
+               min-height: 120px;
+               font-family: inherit;
+               box-sizing: border-box;
+               margin-bottom: 15px;
+               transition: border 0.3s;
+          }
+
+          textarea:focus {
+               outline: none;
+               border-color: #0066cc;
+               box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+          }
+
+          button {
+               background-color: #0066cc;
+               color: white;
+               border: none;
+               padding: 12px 25px;
+               font-size: 16px;
+               border-radius: 8px;
+               cursor: pointer;
+               transition: background-color 0.3s;
+               display: block;
+               margin: 0 auto;
+               font-weight: 500;
+          }
+
+          button:hover {
+               background-color: #0055a5;
+          }
+
+          button:active {
+               transform: translateY(1px);
+          }
+
+          #audioContainer {
+               margin-top: 25px;
+               padding: 15px;
+               border-radius: 8px;
+               background-color: #f0f7ff;
+          }
+
+          #audioContainer audio {
+               width: 100%;
+               margin-top: 10px;
+          }
+
+          #audioContainer p {
+               margin: 0 0 10px 0;
+               color: #0066cc;
+          }
+
+          #audioContainer a {
+               color: #0066cc;
+               text-decoration: none;
+               font-weight: 500;
+               padding: 5px 10px;
+               background-color: #e0edff;
+               border-radius: 5px;
+          }
+
+          #audioContainer a:hover {
+               background-color: #cce2ff;
+               text-decoration: underline;
+          }
+
+          .loading {
+               text-align: center;
+               margin: 20px 0;
+               display: none;
+          }
+
+          .spinner {
+               border: 4px solid rgba(0, 0, 0, 0.1);
+               width: 36px;
+               height: 36px;
+               border-radius: 50%;
+               border-left-color: #0066cc;
+               animation: spin 1s linear infinite;
+               margin: 0 auto;
+          }
+
+          @keyframes spin {
+               0% {
+                    transform: rotate(0deg);
+               }
+
+               100% {
+                    transform: rotate(360deg);
+               }
+          }
+
+          .footer {
+               margin-top: 30px;
+               text-align: center;
+               font-size: 14px;
+               color: #777;
+          }
+     </style>
+</head>
+
+<body>
+     <div class="container">
+          <h2>แปลงข้อความเป็นเสียง</h2>
+          <textarea id="textInput" rows="4" placeholder="พิมพ์ข้อความภาษาไทยที่นี่..."></textarea>
+
+          <button onclick="synthesizeSpeech()">แปลงข้อความเป็นเสียง</button>
+
+          <div class="loading" id="loadingIndicator">
+               <div class="spinner"></div>
+               <p>กำลังประมวลผล...</p>
+          </div>
+
+          <div id="audioContainer"></div>
+
+          <div class="footer">
+               <p>บริการแปลงข้อความเป็นเสียงโดยใช้ API ของ AI for Thai</p>
+          </div>
+     </div>
+
+     <script>
+          const apiKey = '0XJfFwEXe07F440O0i7AVDxSpN3jeOdN';
+          const url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual';
+
+          function synthesizeSpeech() {
+               const text = document.getElementById('textInput').value;
+               if (!text) {
+                    alert('กรุณาใส่ข้อความ');
+                    return;
+               }
+
+               // Show loading indicator
+               document.getElementById('loadingIndicator').style.display = 'block';
+               document.getElementById('audioContainer').innerHTML = '';
+
+               const requestData = {
+                    input_text: text,
+                    speaker: 1,
+                    phrase_break: 0,
+                    audiovisual: 0
+               };
+
+               fetch(url, {
+                    method: 'POST',
+                    headers: {
+                         'Apikey': apiKey,
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+               })
+                    .then(response => response.json())
+                    .then(data => {
+                         if (data.wav_url) {
+                              return fetch(data.wav_url, {
+                                   headers: { 'Apikey': apiKey }
+                              });
+                         } else {
+                              throw new Error('Failed to retrieve audio URL');
+                         }
+                    })
+                    .then(response => response.blob())
+                    .then(blob => {
+                         const audioUrl = URL.createObjectURL(blob);
+                         const audioContainer = document.getElementById('audioContainer');
+                         audioContainer.innerHTML = `
+                    <p>เสียงพูดของคุณพร้อมใช้งานแล้ว: <a href="${audioUrl}" download="thai_speech.wav">ดาวน์โหลดไฟล์เสียง</a></p>
+                `;
+
+                         const audio = new Audio(audioUrl);
+                         audio.controls = true;
+                         audioContainer.appendChild(audio);
+
+                         // Hide loading indicator
+                         document.getElementById('loadingIndicator').style.display = 'none';
+                    })
+                    .catch(error => {
+                         console.error('Error:', error);
+                         document.getElementById('audioContainer').innerHTML = `<p style="color: #cc0000;">เกิดข้อผิดพลาด: ไม่สามารถแปลงข้อความเป็นเสียงได้</p>`;
+                         document.getElementById('loadingIndicator').style.display = 'none';
+                    });
+          }
+     </script>
+</body>
+
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>ระบบตรวจจับใบหน้า</title>
+     <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css"
+          rel="stylesheet">
+     <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+     <style>
+          :root {
+               --primary-color: #6200ee;
+               --primary-dark: #3700b3;
+               --secondary-color: #03dac6;
+               --background-color: #f5f5f5;
+               --text-color: #333333;
+               --highlight-color: rgba(98, 0, 238, 0.25);
+               --highlight-border: #6200ee;
+               --info-bg: #6200ee;
+               --keypoint-color: #03dac6;
+          }
+
+          body {
+               font-family: 'Sarabun', sans-serif;
+               margin: 2em;
+               color: var(--text-color);
+               background-color: var(--background-color);
+               --mdc-theme-primary: var(--primary-color);
+               --mdc-theme-on-primary: #ffffff;
+          }
+
+          h1 {
+               color: var(--primary-color);
+               text-align: center;
+               margin-bottom: 30px;
+          }
+
+          h2 {
+               clear: both;
+               color: var(--primary-dark);
+               border-bottom: 2px solid var(--secondary-color);
+               padding-bottom: 10px;
+          }
+
+          em {
+               font-weight: bold;
+               color: var(--primary-color);
+          }
+
+          video {
+               clear: both;
+               display: block;
+               transform: rotateY(180deg);
+               -webkit-transform: rotateY(180deg);
+               -moz-transform: rotateY(180deg);
+               border-radius: 8px;
+               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          section {
+               opacity: 1;
+               transition: opacity 500ms ease-in-out;
+               background-color: white;
+               padding: 20px;
+               border-radius: 12px;
+               box-shadow: 0 6px 10px rgba(0, 0, 0, 0.08);
+               margin-bottom: 20px;
+          }
+
+          .mdc-button.mdc-button--raised.removed {
+               display: none;
+          }
+
+          .invisible {
+               opacity: 0.2;
+          }
+
+          .videoView,
+          .detectOnClick {
+               position: relative;
+               float: left;
+               width: 48%;
+               margin: 2% 1%;
+               cursor: pointer;
+               border-radius: 8px;
+               overflow: hidden;
+               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+               transition: transform 0.3s ease;
+          }
+
+          .videoView:hover,
+          .detectOnClick:hover {
+               transform: translateY(-5px);
+          }
+
+          .detectOnClick p {
+               position: absolute;
+               padding: 8px;
+               background-color: var(--info-bg);
+               color: #fff;
+               border: 1px dashed rgba(255, 255, 255, 0.7);
+               z-index: 2;
+               font-size: 14px;
+               margin: 0;
+               border-radius: 4px;
+          }
+
+          .videoView p {
+               position: absolute;
+               padding: 8px;
+               background-color: var(--info-bg);
+               color: #fff;
+               border: 1px dashed rgba(255, 255, 255, 0.7);
+               z-index: 2;
+               font-size: 14px;
+               margin: 0;
+               border-radius: 4px;
+          }
+
+          .highlighter {
+               background: var(--highlight-color);
+               border: 2px solid var(--highlight-border);
+               z-index: 1;
+               position: absolute;
+               border-radius: 4px;
+          }
+
+          .detectOnClick {
+               z-index: 0;
+          }
+
+          .detectOnClick img {
+               width: 100%;
+               border-radius: 8px;
+          }
+
+          .key-point {
+               position: absolute;
+               z-index: 1;
+               width: 4px;
+               height: 4px;
+               background-color: var(--keypoint-color);
+               border-radius: 50%;
+               display: block;
+               box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+          }
+
+          #loading {
+               text-align: center;
+               margin: 50px 0;
+               font-size: 18px;
+               color: var(--primary-color);
+               background-color: white;
+               padding: 20px;
+               border-radius: 8px;
+               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          #webcamButton {
+               margin: 20px 0;
+               font-family: 'Sarabun', sans-serif;
+               font-weight: bold;
+          }
+
+          @media (max-width: 768px) {
+
+               .videoView,
+               .detectOnClick {
+                    width: 98%;
+               }
+
+               body {
+                    margin: 1em;
+               }
+          }
+     </style>
+</head>
+
+<body>
+     <h1>ระบบตรวจจับใบหน้าด้วย</h1>
+
+     <div id="loading">กำลังโหลดโมเดล กรุณารอสักครู่...</div>
+
+     <section id="demos" class="invisible">
+          <h2>ตรวจจับใบหน้าผ่านเว็บแคม</h2>
+          <p>ตรวจจับใบหน้าจากเว็บแคมของคุณ เมื่อพร้อมแล้วให้คลิก "เปิดเว็บแคม" ด้านล่างและยอมรับการเข้าถึงเว็บแคม</p>
+          <div id="liveView" class="videoView">
+               <button id="webcamButton" class="mdc-button mdc-button--raised">
+                    <span class="mdc-button__ripple"></span>
+                    <span class="mdc-button__label">เปิดเว็บแคม</span>
+               </button>
+               <video id="webcam" autoplay playsinline></video>
+          </div>
+     </section>
+
+     <script type="module">
+          import {
+               FaceDetector,
+               FilesetResolver
+          } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+          const demosSection = document.getElementById("demos");
+          const loadingElement = document.getElementById("loading");
+
+          let faceDetector;
+          let runningMode = "IMAGE";
+
+          // ฟังก์ชันสำหรับเริ่มต้นตัวตรวจจับใบหน้า
+          const initializefaceDetector = async () => {
+               try {
+                    const vision = await FilesetResolver.forVisionTasks(
+                         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+                    );
+                    faceDetector = await FaceDetector.createFromOptions(vision, {
+                         baseOptions: {
+                              modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
+                              delegate: "GPU"
+                         },
+                         runningMode: runningMode
+                    });
+                    demosSection.classList.remove("invisible");
+                    loadingElement.style.display = "none";
+               } catch (error) {
+                    console.error("เกิดข้อผิดพลาดในการโหลดโมเดล:", error);
+                    loadingElement.textContent = "เกิดข้อผิดพลาดในการโหลดโมเดล กรุณาลองใหม่อีกครั้ง";
+               }
+          };
+          initializefaceDetector();
+
+          // ส่วนสำหรับตรวจจับใบหน้าในภาพนิ่ง
+          const imageContainers = document.getElementsByClassName("detectOnClick");
+
+          for (let i = 0; i < imageContainers.length; i++) {
+               imageContainers[i].children[0].addEventListener("click", handleClick);
+          }
+
+          // ฟังก์ชันสำหรับจัดการเมื่อมีการคลิกที่ภาพ
+          async function handleClick(event) {
+               const highlighters = event.target.parentNode.getElementsByClassName("highlighter");
+               while (highlighters[0]) {
+                    highlighters[0].parentNode.removeChild(highlighters[0]);
+               }
+
+               const infos = event.target.parentNode.getElementsByClassName("info");
+               while (infos[0]) {
+                    infos[0].parentNode.removeChild(infos[0]);
+               }
+
+               const keyPoints = event.target.parentNode.getElementsByClassName("key-point");
+               while (keyPoints[0]) {
+                    keyPoints[0].parentNode.removeChild(keyPoints[0]);
+               }
+
+               if (!faceDetector) {
+                    console.log("รอให้โมเดลโหลดให้เสร็จก่อนคลิก");
+                    return;
+               }
+
+               // ถ้าเดิมอยู่ในโหมดวิดีโอ ให้เปลี่ยนเป็นโหมดภาพ
+               if (runningMode === "VIDEO") {
+                    runningMode = "IMAGE";
+                    await faceDetector.setOptions({ runningMode: "IMAGE" });
+               }
+
+               // ตรวจจับใบหน้าในภาพ
+               try {
+                    const detections = faceDetector.detect(event.target).detections;
+                    displayImageDetections(detections, event.target);
+               } catch (error) {
+                    console.error("เกิดข้อผิดพลาดในการตรวจจับ:", error);
+               }
+          }
+
+          // ฟังก์ชันสำหรับแสดงผลการตรวจจับในภาพ
+          function displayImageDetections(detections, resultElement) {
+               const ratio = resultElement.height / resultElement.naturalHeight;
+
+               for (let detection of detections) {
+                    // สร้างข้อความแสดงความเชื่อมั่น
+                    const p = document.createElement("p");
+                    p.setAttribute("class", "info");
+                    p.innerText = "ความเชื่อมั่น: " + Math.round(parseFloat(detection.categories[0].score) * 100) + "% ";
+
+                    p.style = "left: " + detection.boundingBox.originX * ratio + "px;" +
+                         "top: " + (detection.boundingBox.originY * ratio - 30) + "px; " +
+                         "width: " + (detection.boundingBox.width * ratio - 10) + "px;" +
+                         "height: " + 20 + "px;";
+
+                    // สร้างกรอบไฮไลท์
+                    const highlighter = document.createElement("div");
+                    highlighter.setAttribute("class", "highlighter");
+                    highlighter.style = "left: " + detection.boundingBox.originX * ratio + "px;" +
+                         "top: " + detection.boundingBox.originY * ratio + "px;" +
+                         "width: " + detection.boundingBox.width * ratio + "px;" +
+                         "height: " + detection.boundingBox.height * ratio + "px;";
+
+                    resultElement.parentNode.appendChild(highlighter);
+                    resultElement.parentNode.appendChild(p);
+
+                    // แสดงจุดสำคัญบนใบหน้า
+                    for (let keypoint of detection.keypoints) {
+                         const keypointEl = document.createElement("span");
+                         keypointEl.className = "key-point";
+                         keypointEl.style.top = `${keypoint.y * resultElement.height - 3}px`;
+                         keypointEl.style.left = `${keypoint.x * resultElement.width - 3}px`;
+                         resultElement.parentNode.appendChild(keypointEl);
+                    }
+               }
+          }
+
+          // ส่วนสำหรับตรวจจับใบหน้าจากเว็บแคม
+          const video = document.getElementById("webcam");
+          const liveView = document.getElementById("liveView");
+          let enableWebcamButton;
+
+          // ตรวจสอบว่าเบราว์เซอร์รองรับการเข้าถึงเว็บแคมหรือไม่
+          const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
+
+          // เก็บอ้างอิงของ element ลูกที่สร้างขึ้นเพื่อลบทิ้งได้ง่าย
+          let children = [];
+
+          // ถ้าเบราว์เซอร์รองรับเว็บแคม ให้เพิ่ม event listener ให้กับปุ่ม
+          if (hasGetUserMedia()) {
+               enableWebcamButton = document.getElementById("webcamButton");
+               enableWebcamButton.addEventListener("click", enableCam);
+          } else {
+               console.warn("getUserMedia() ไม่รองรับโดยเบราว์เซอร์ของคุณ");
+               const webcamButton = document.getElementById("webcamButton");
+               webcamButton.textContent = "เบราว์เซอร์ไม่รองรับเว็บแคม";
+               webcamButton.disabled = true;
+          }
+
+          // ฟังก์ชันสำหรับเปิดเว็บแคม
+          async function enableCam(event) {
+               if (!faceDetector) {
+                    alert("ตัวตรวจจับใบหน้ายังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง");
+                    return;
+               }
+
+               // ซ่อนปุ่ม
+               enableWebcamButton.classList.add("removed");
+
+               // พารามิเตอร์สำหรับ getUsermedia
+               const constraints = {
+                    video: true
+               };
+
+               // เปิดสตรีมเว็บแคม
+               try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream;
+                    video.addEventListener("loadeddata", predictWebcam);
+               } catch (err) {
+                    console.error("เกิดข้อผิดพลาดในการเข้าถึงเว็บแคม:", err);
+                    alert("ไม่สามารถเข้าถึงเว็บแคมได้");
+                    enableWebcamButton.classList.remove("removed");
+               }
+          }
+
+          let lastVideoTime = -1;
+
+          // ฟังก์ชันสำหรับทำนายจากเว็บแคม
+          async function predictWebcam() {
+               // ถ้าเดิมอยู่ในโหมดภาพ ให้เปลี่ยนเป็นโหมดวิดีโอ
+               if (runningMode === "IMAGE") {
+                    runningMode = "VIDEO";
+                    await faceDetector.setOptions({ runningMode: "VIDEO" });
+               }
+
+               let startTimeMs = performance.now();
+
+               // ตรวจจับใบหน้าโดยใช้ detectForVideo
+               if (video.currentTime !== lastVideoTime) {
+                    lastVideoTime = video.currentTime;
+                    try {
+                         const detections = faceDetector.detectForVideo(video, startTimeMs).detections;
+                         displayVideoDetections(detections);
+                    } catch (error) {
+                         console.error("เกิดข้อผิดพลาดในการตรวจจับจากวิดีโอ:", error);
+                    }
+               }
+
+               // เรียกฟังก์ชันนี้อีกครั้งเพื่อทำนายเฟรมต่อไป
+               window.requestAnimationFrame(predictWebcam);
+          }
+
+          // ฟังก์ชันสำหรับแสดงผลการตรวจจับในวิดีโอ
+          function displayVideoDetections(detections) {
+               // ลบการไฮไลท์จากเฟรมก่อนหน้า
+               for (let child of children) {
+                    liveView.removeChild(child);
+               }
+               children.splice(0);
+
+               // วนลูปผ่านผลการทำนายและแสดงผลในมุมมองสด
+               for (let detection of detections) {
+                    const p = document.createElement("p");
+                    p.innerText = "ความเชื่อมั่น: " + Math.round(parseFloat(detection.categories[0].score) * 100) + "% ";
+                    p.style = "left: " + (video.offsetWidth - detection.boundingBox.width - detection.boundingBox.originX) + "px;" +
+                         "top: " + (detection.boundingBox.originY - 30) + "px; " +
+                         "width: " + (detection.boundingBox.width - 10) + "px;";
+
+                    const highlighter = document.createElement("div");
+                    highlighter.setAttribute("class", "highlighter");
+                    highlighter.style = "left: " + (video.offsetWidth - detection.boundingBox.width - detection.boundingBox.originX) + "px;" +
+                         "top: " + detection.boundingBox.originY + "px;" +
+                         "width: " + (detection.boundingBox.width - 10) + "px;" +
+                         "height: " + detection.boundingBox.height + "px;";
+
+                    liveView.appendChild(highlighter);
+                    liveView.appendChild(p);
+
+                    // เก็บวัตถุที่วาดไว้ในหน่วยความจำเพื่อลบทิ้งในการเรียกถัดไป
+                    children.push(highlighter);
+                    children.push(p);
+
+                    // แสดงจุดสำคัญบนใบหน้า
+                    for (let keypoint of detection.keypoints) {
+                         const keypointEl = document.createElement("span");
+                         keypointEl.className = "key-point";
+                         keypointEl.style.top = `${keypoint.y * video.offsetHeight - 3}px`;
+                         keypointEl.style.left = `${video.offsetWidth - keypoint.x * video.offsetWidth - 3}px`;
+                         liveView.appendChild(keypointEl);
+                         children.push(keypointEl);
+                    }
+               }
+          }
+     </script>
+
+     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+</body>
+
+</html>

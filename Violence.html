@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>สร้างคำบรรยายภาพภาษาไทย</title>
+     <style>
+          @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+
+          :root {
+               --primary: #4e54c8;
+               --primary-dark: #363795;
+               --accent: #6EB9F7;
+               --light: #f8f9fa;
+               --dark: #343a40;
+               --success: #28a745;
+               --success-hover: #218838;
+               --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+          }
+
+          * {
+               margin: 0;
+               padding: 0;
+               box-sizing: border-box;
+          }
+
+          body {
+               font-family: 'Prompt', Arial, sans-serif;
+               text-align: center;
+               background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+               min-height: 100vh;
+               padding: 40px 20px;
+               color: var(--dark);
+               display: flex;
+               align-items: center;
+               justify-content: center;
+          }
+
+          .container {
+               background: white;
+               padding: 30px;
+               border-radius: 16px;
+               box-shadow: var(--card-shadow);
+               max-width: 550px;
+               width: 100%;
+               margin: auto;
+               transition: all 0.3s ease;
+          }
+
+          h2 {
+               color: var(--primary);
+               margin-bottom: 25px;
+               font-weight: 600;
+               font-size: 24px;
+          }
+
+          .upload-area {
+               border: 2px dashed #ccc;
+               border-radius: 10px;
+               padding: 25px;
+               margin-bottom: 20px;
+               position: relative;
+               transition: all 0.3s;
+               cursor: pointer;
+          }
+
+          .upload-area:hover {
+               border-color: var(--accent);
+               background-color: rgba(110, 185, 247, 0.05);
+          }
+
+          .upload-icon {
+               font-size: 40px;
+               color: #ccc;
+               margin-bottom: 10px;
+          }
+
+          input[type="file"] {
+               position: absolute;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               opacity: 0;
+               cursor: pointer;
+          }
+
+          .file-info {
+               font-size: 14px;
+               color: #666;
+               margin-top: 10px;
+          }
+
+          button {
+               background: linear-gradient(to right, var(--success), var(--success-hover));
+               color: white;
+               border: none;
+               padding: 12px 30px;
+               border-radius: 50px;
+               cursor: pointer;
+               font-size: 16px;
+               font-weight: 500;
+               transition: all 0.3s;
+               display: inline-flex;
+               align-items: center;
+               justify-content: center;
+               margin-top: 10px;
+               box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+          }
+
+          button:hover {
+               transform: translateY(-2px);
+               box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+          }
+
+          button:active {
+               transform: translateY(1px);
+          }
+
+          button:disabled {
+               background: #cccccc;
+               cursor: not-allowed;
+          }
+
+          .btn-icon {
+               margin-right: 8px;
+          }
+
+          .result-container {
+               margin-top: 25px;
+               padding: 20px;
+               border-radius: 10px;
+               background-color: var(--light);
+               display: none;
+          }
+
+          .result-title {
+               font-size: 16px;
+               font-weight: 500;
+               color: var(--primary);
+               margin-bottom: 10px;
+          }
+
+          #result {
+               font-size: 18px;
+               color: var(--dark);
+               line-height: 1.6;
+               word-wrap: break-word;
+          }
+
+          #preview {
+               max-width: 100%;
+               margin-top: 15px;
+               border-radius: 10px;
+               display: none;
+               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          .loading {
+               display: inline-block;
+               width: 20px;
+               height: 20px;
+               border: 3px solid rgba(255, 255, 255, 0.3);
+               border-radius: 50%;
+               border-top-color: white;
+               animation: spin 1s ease-in-out infinite;
+               margin-right: 10px;
+               display: none;
+          }
+
+          @keyframes spin {
+               to {
+                    transform: rotate(360deg);
+               }
+          }
+
+          .selected-file {
+               margin-top: 10px;
+               font-size: 14px;
+               color: #666;
+               display: none;
+          }
+
+          @media (max-width: 480px) {
+               .container {
+                    padding: 20px;
+               }
+
+               h2 {
+                    font-size: 20px;
+               }
+          }
+
+          /* Add new styles for history */
+          .history-container {
+               margin-top: 30px;
+               text-align: left;
+          }
+
+          .history-item {
+               background: var(--light);
+               padding: 15px;
+               border-radius: 8px;
+               margin-bottom: 10px;
+               display: flex;
+               align-items: center;
+               gap: 15px;
+          }
+
+          .history-image {
+               width: 100px;
+               height: 100px;
+               object-fit: cover;
+               border-radius: 6px;
+          }
+
+          .history-text {
+               flex: 1;
+          }
+
+          .history-timestamp {
+               color: #666;
+               font-size: 12px;
+               margin-top: 5px;
+          }
+
+          .clear-history {
+               background: #dc3545;
+               margin-bottom: 15px;
+          }
+
+          .clear-history:hover {
+               box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
+          }
+     </style>
+</head>
+
+<body>
+     <div class="container">
+          <h2>สร้างคำบรรยายภาพด้วย AI</h2>
+
+          <div class="upload-area" id="uploadArea">
+               <div class="upload-icon">📷</div>
+               <p>คลิกเพื่ออัปโหลดรูปภาพ</p>
+               <p class="file-info">รองรับไฟล์: JPG, PNG, GIF</p>
+               <input type="file" id="imageInput" accept="image/*" onchange="updateFileName()">
+               <p class="selected-file" id="selectedFile"></p>
+          </div>
+
+          <button id="analyzeBtn" onclick="generateCaption()">
+               <span class="loading" id="loadingIcon"></span>
+               <span class="btn-icon">🔍</span>วิเคราะห์ภาพ
+          </button>
+
+          <div class="result-container" id="resultContainer">
+               <div class="result-title">ผลการวิเคราะห์</div>
+               <div id="result"></div>
+               <img id="preview" alt="ภาพที่อัปโหลด" />
+          </div>
+
+          <!-- Add history section -->
+          <div class="history-container" id="historyContainer">
+               <h3 style="color: var(--primary); margin-bottom: 15px;">ประวัติการวิเคราะห์</h3>
+               <button class="clear-history" onclick="clearHistory()">
+                    <span class="btn-icon">🗑️</span>ล้างประวัติ
+               </button>
+               <div id="historyList"></div>
+          </div>
+     </div>
+
+     <script>
+          const apiKey = '0XJfFwEXe07F440O0i7AVDxSpN3jeOdN';
+          const url = 'https://api.aiforthai.in.th/capgen';
+
+          // Update file name display when file is selected
+          function updateFileName() {
+               const fileInput = document.getElementById('imageInput');
+               const selectedFile = document.getElementById('selectedFile');
+
+               if (fileInput.files.length) {
+                    selectedFile.textContent = "ไฟล์ที่เลือก: " + fileInput.files[0].name;
+                    selectedFile.style.display = 'block';
+                    document.getElementById('analyzeBtn').disabled = false;
+               } else {
+                    selectedFile.style.display = 'none';
+                    document.getElementById('analyzeBtn').disabled = true;
+               }
+          }
+
+          function generateCaption() {
+               const fileInput = document.getElementById('imageInput');
+               const loadingIcon = document.getElementById('loadingIcon');
+               const analyzeBtn = document.getElementById('analyzeBtn');
+               const resultContainer = document.getElementById('resultContainer');
+
+               if (!fileInput.files.length) {
+                    alert('กรุณาอัพโหลดไฟล์ภาพ');
+                    return;
+               }
+
+               // Show loading state
+               loadingIcon.style.display = 'inline-block';
+               analyzeBtn.disabled = true;
+
+               const file = fileInput.files[0];
+               const formData = new FormData();
+               formData.append('file', file);
+
+               // Show preview
+               const reader = new FileReader();
+               reader.onload = function (e) {
+                    const preview = document.getElementById('preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    resultContainer.style.display = 'block';
+
+                    // Store image data for history
+                    window.currentImageData = e.target.result;
+               };
+               reader.readAsDataURL(file);
+
+               fetch(url, {
+                    method: 'POST',
+                    headers: {
+                         'Apikey': apiKey
+                    },
+                    body: formData
+               })
+                    .then(response => response.json())
+                    .then(data => {
+                         const caption = data.caption;
+                         document.getElementById('result').innerText = caption;
+                         loadingIcon.style.display = 'none';
+                         analyzeBtn.disabled = false;
+
+                         // Add to history
+                         addToHistory(caption);
+                    })
+                    .catch(error => {
+                         console.error('Error:', error);
+                         document.getElementById('result').innerText = 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+                         loadingIcon.style.display = 'none';
+                         analyzeBtn.disabled = false;
+                    });
+          }
+
+          // History management functions
+          function addToHistory(caption) {
+               const history = getHistory();
+               history.unshift({
+                    caption: caption,
+                    image: window.currentImageData,
+                    timestamp: new Date().toLocaleString('th-TH')
+               });
+               localStorage.setItem('captionHistory', JSON.stringify(history.slice(0, 10))); // Keep only last 10 items
+               displayHistory();
+          }
+
+          function getHistory() {
+               const history = localStorage.getItem('captionHistory');
+               return history ? JSON.parse(history) : [];
+          }
+
+          function displayHistory() {
+               const historyList = document.getElementById('historyList');
+               const history = getHistory();
+
+               historyList.innerHTML = history.map(item => `
+                    <div class="history-item">
+                         <img src="${item.image}" class="history-image" alt="ภาพในประวัติ">
+                         <div class="history-text">
+                              <div>${item.caption}</div>
+                              <div class="history-timestamp">${item.timestamp}</div>
+                         </div>
+                    </div>
+               `).join('');
+          }
+
+          function clearHistory() {
+               if (confirm('คุณต้องการลบประวัติทั้งหมดใช่หรือไม่?')) {
+                    localStorage.removeItem('captionHistory');
+                    displayHistory();
+               }
+          }
+
+          // Initialize button state
+          document.getElementById('analyzeBtn').disabled = true;
+          displayHistory();
+     </script>
+</body>
+
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Object Detection System</title>
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+     <style>
+          /* ฟอนต์สำหรับภาษาไทย */
+          @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
+          :root {
+               --primary: #4CAF50;
+               --primary-dark: #388E3C;
+               --primary-light: #A5D6A7;
+               --secondary: #2196F3;
+               --dark: #333333;
+               --light: #FFFFFF;
+               --gray-light: #F5F5F5;
+               --gray: #E0E0E0;
+          }
+
+          * {
+               margin: 0;
+               padding: 0;
+               box-sizing: border-box;
+          }
+
+          body {
+               font-family: 'Prompt', sans-serif;
+               color: var(--dark);
+               background-color: var(--gray-light);
+               line-height: 1.6;
+          }
+
+          /* ----- HEADER ----- */
+          header {
+               background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+               color: var(--light);
+               padding: 20px 0;
+               box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+               position: sticky;
+               top: 0;
+               z-index: 100;
+          }
+
+          .navbar {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               max-width: 1200px;
+               margin: 0 auto;
+               padding: 0 20px;
+          }
+
+          .logo {
+               display: flex;
+               align-items: center;
+               font-size: 1.8rem;
+               font-weight: 700;
+          }
+
+          .logo i {
+               margin-right: 10px;
+               font-size: 2rem;
+          }
+
+          nav ul {
+               display: flex;
+               list-style: none;
+          }
+
+          nav ul li {
+               margin-left: 30px;
+          }
+
+          nav ul li a {
+               color: var(--light);
+               text-decoration: none;
+               font-weight: 500;
+               transition: color 0.3s;
+          }
+
+          nav ul li a:hover {
+               color: var(--gray-light);
+          }
+
+          .mobile-menu-btn {
+               display: none;
+               font-size: 1.5rem;
+               cursor: pointer;
+          }
+
+          /* ----- HERO SECTION ----- */
+          .hero {
+               background-image: url('/api/placeholder/1920/1080');
+               background-size: cover;
+               background-position: center;
+               height: 500px;
+               position: relative;
+               display: flex;
+               justify-content: center;
+               align-items: center;
+               text-align: center;
+               color: var(--light);
+          }
+
+          .hero::before {
+               content: '';
+               position: absolute;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background: rgba(0, 0, 0, 0.6);
+          }
+
+          .hero-content {
+               position: relative;
+               max-width: 800px;
+               padding: 0 20px;
+          }
+
+          .hero h1 {
+               font-size: 3rem;
+               margin-bottom: 20px;
+               animation: fadeInUp 1s ease;
+          }
+
+          .hero p {
+               font-size: 1.2rem;
+               margin-bottom: 30px;
+               animation: fadeInUp 1s ease 0.2s;
+               animation-fill-mode: both;
+          }
+
+          .cta-buttons {
+               display: flex;
+               justify-content: center;
+               gap: 20px;
+               animation: fadeInUp 1s ease 0.4s;
+               animation-fill-mode: both;
+          }
+
+          .btn {
+               display: inline-block;
+               padding: 12px 30px;
+               border-radius: 50px;
+               text-decoration: none;
+               font-weight: 500;
+               text-align: center;
+               transition: all 0.3s ease;
+          }
+
+          .btn-primary {
+               background-color: var(--primary);
+               color: var(--light);
+               box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+          }
+
+          .btn-primary:hover {
+               background-color: var(--primary-dark);
+               transform: translateY(-3px);
+               box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+          }
+
+          .btn-secondary {
+               background-color: transparent;
+               color: var(--light);
+               border: 2px solid var(--light);
+          }
+
+          .btn-secondary:hover {
+               background-color: var(--light);
+               color: var(--primary);
+               transform: translateY(-3px);
+          }
+
+          /* ----- FEATURES SECTION ----- */
+          .features {
+               padding: 80px 20px;
+               max-width: 1200px;
+               margin: 0 auto;
+          }
+
+          .section-title {
+               text-align: center;
+               margin-bottom: 60px;
+          }
+
+          .section-title h2 {
+               font-size: 2.5rem;
+               color: var(--primary);
+               margin-bottom: 15px;
+          }
+
+          .section-title p {
+               max-width: 600px;
+               margin: 0 auto;
+               color: #666;
+          }
+
+          .features-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+               gap: 30px;
+          }
+
+          .feature-card {
+               background-color: var(--light);
+               border-radius: 10px;
+               padding: 30px;
+               box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+               transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .feature-card:hover {
+               transform: translateY(-10px);
+               box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+          }
+
+          .feature-icon {
+               background-color: var(--primary-light);
+               color: var(--primary-dark);
+               width: 70px;
+               height: 70px;
+               border-radius: 50%;
+               display: flex;
+               justify-content: center;
+               align-items: center;
+               font-size: 1.8rem;
+               margin-bottom: 20px;
+          }
+
+          .feature-card h3 {
+               margin-bottom: 15px;
+               font-size: 1.5rem;
+          }
+
+          /* ----- DEMO SECTION ----- */
+          .demo {
+               background-color: var(--gray);
+               padding: 80px 20px;
+          }
+
+          .demo-content {
+               max-width: 1200px;
+               margin: 0 auto;
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               flex-wrap: wrap;
+               gap: 40px;
+          }
+
+          .demo-text {
+               flex: 1;
+               min-width: 300px;
+          }
+
+          .demo-text h2 {
+               font-size: 2.5rem;
+               color: var(--primary);
+               margin-bottom: 20px;
+          }
+
+          .demo-text ul {
+               margin: 20px 0;
+               padding-left: 20px;
+          }
+
+          .demo-text li {
+               margin-bottom: 10px;
+          }
+
+          .demo-image {
+               flex: 1;
+               min-width: 300px;
+               display: flex;
+               justify-content: center;
+          }
+
+          .demo-image img {
+               max-width: 100%;
+               border-radius: 10px;
+               box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          }
+
+          /* ----- APP SECTION ----- */
+          .app {
+               padding: 80px 20px;
+               max-width: 1200px;
+               margin: 0 auto;
+               text-align: center;
+          }
+
+          .app-buttons {
+               display: flex;
+               justify-content: center;
+               flex-wrap: wrap;
+               gap: 20px;
+               margin-top: 40px;
+          }
+
+          .app-btn {
+               display: flex;
+               align-items: center;
+               gap: 10px;
+               padding: 15px 30px;
+               background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+               color: var(--light);
+               border-radius: 8px;
+               text-decoration: none;
+               font-weight: 500;
+               transition: all 0.3s ease;
+          }
+
+          .app-btn:hover {
+               transform: translateY(-5px);
+               box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+          }
+
+          .app-btn i {
+               font-size: 1.5rem;
+          }
+
+          /* ----- FOOTER ----- */
+          footer {
+               background-color: var(--dark);
+               color: var(--light);
+               padding: 60px 20px 20px;
+          }
+
+          .footer-content {
+               max-width: 1200px;
+               margin: 0 auto;
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+               gap: 40px;
+               margin-bottom: 40px;
+          }
+
+          .footer-column h3 {
+               font-size: 1.2rem;
+               margin-bottom: 20px;
+               color: var(--primary);
+          }
+
+          .footer-column ul {
+               list-style: none;
+          }
+
+          .footer-column ul li {
+               margin-bottom: 10px;
+          }
+
+          .footer-column a {
+               color: #aaa;
+               text-decoration: none;
+               transition: color 0.3s;
+          }
+
+          .footer-column a:hover {
+               color: var(--light);
+          }
+
+          .social-links {
+               display: flex;
+               gap: 15px;
+          }
+
+          .social-links a {
+               display: flex;
+               justify-content: center;
+               align-items: center;
+               width: 40px;
+               height: 40px;
+               background-color: #444;
+               border-radius: 50%;
+               color: var(--light);
+               font-size: 1.2rem;
+               transition: all 0.3s ease;
+          }
+
+          .social-links a:hover {
+               background-color: var(--primary);
+               transform: translateY(-3px);
+          }
+
+          .footer-bottom {
+               max-width: 1200px;
+               margin: 0 auto;
+               text-align: center;
+               padding-top: 20px;
+               border-top: 1px solid #444;
+               color: #aaa;
+               font-size: 0.9rem;
+          }
+
+          /* ----- ANIMATIONS ----- */
+          @keyframes fadeInUp {
+               from {
+                    opacity: 0;
+                    transform: translateY(20px);
+               }
+
+               to {
+                    opacity: 1;
+                    transform: translateY(0);
+               }
+          }
+
+          /* ----- RESPONSIVE ----- */
+          @media (max-width: 768px) {
+               .navbar {
+                    position: relative;
+               }
+
+               .mobile-menu-btn {
+                    display: block;
+               }
+
+               nav ul {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background-color: var(--primary-dark);
+                    flex-direction: column;
+                    padding: 20px;
+                    gap: 15px;
+                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                    display: none;
+               }
+
+               nav ul.show {
+                    display: flex;
+               }
+
+               nav ul li {
+                    margin: 0;
+               }
+
+               .hero h1 {
+                    font-size: 2.2rem;
+               }
+
+               .cta-buttons {
+                    flex-direction: column;
+                    gap: 15px;
+               }
+
+               .feature-icon {
+                    width: 60px;
+                    height: 60px;
+                    font-size: 1.5rem;
+               }
+          }
+     </style>
+</head>
+
+<body>
+     <!-- Header -->
+     <header>
+          <div class="navbar">
+               <div class="logo">
+                    <i class="fas fa-bullseye"></i>
+                    <span>AI By 651413010</span>
+               </div>
+               <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+               </div>
+               <nav>
+                    <ul id="menu">
+                         <li><a href="#features">คุณสมบัติ</a></li>
+                         <li><a href="#demo">การใช้งาน</a></li>
+                         <li><a href="#app">เริ่มใช้งาน</a></li>
+                    </ul>
+               </nav>
+          </div>
+     </header>
+
+     <!-- Hero Section -->
+     <section class="hero">
+          <div class="hero-content">
+               <h1>AI ตรวจจับวัตถุอัจฉริยะ</h1>
+               <p>เทคโนโลยีการตรวจจับวัตถุที่แม่นยำและรวดเร็ว พร้อมระบบวิเคราะห์ด้วย AI ที่ทันสมัย
+                    ตอบโจทย์ทุกความต้องการสำหรับการตรวจจับวัตถุ</p>
+               <div class="cta-buttons">
+                    <a href="http://localhost:8501" target="_blank" class="btn btn-primary">
+                         <i class="fas fa-search"></i> ทดลองใช้งาน
+                    </a>
+                    <a href="#features" class="btn btn-secondary">เรียนรู้เพิ่มเติม</a>
+               </div>
+          </div>
+     </section>
+
+     <!-- Features Section -->
+     <section class="features" id="features">
+          <div class="section-title">
+               <h2>คุณสมบัติเด่น</h2>
+               <p>ค้นพบความสามารถอันทรงพลังของระบบตรวจจับวัตถุด้วย AI ของเรา</p>
+          </div>
+          <div class="features-grid">
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h3>ประมวลผลเร็ว</h3>
+                    <p>การตรวจจับวัตถุที่รวดเร็วด้วยเทคโนโลยี AI ทำให้ประมวลผลได้ทันทีแบบ Real-time บนทุกอุปกรณ์</p>
+               </div>
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>แม่นยำสูง</h3>
+                    <p>การตรวจจับที่แม่นยำด้วยโมเดล AI ที่ผ่านการเทรนด้วยข้อมูลจำนวนมาก
+                         รองรับการตรวจจับวัตถุหลากหลายประเภท</p>
+               </div>
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>ปรับแต่งได้</h3>
+                    <p>ระบบที่ยืดหยุ่นสามารถปรับแต่งให้เหมาะกับความต้องการของคุณ
+                         ไม่ว่าจะเป็นการปรับความไวหรือประเภทของวัตถุที่ต้องการตรวจจับ</p>
+               </div>
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>วิเคราะห์ข้อมูล</h3>
+                    <p>ระบบวิเคราะห์ข้อมูลแบบลึกที่ช่วยให้คุณเข้าใจพฤติกรรมและรูปแบบการเคลื่อนไหวของวัตถุที่ตรวจจับได้
+                    </p>
+               </div>
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>รองรับทุกอุปกรณ์</h3>
+                    <p>ใช้งานได้บนทุกแพลตฟอร์ม ไม่ว่าจะเป็นเดสก์ท็อป โน้ตบุ๊ก แท็บเล็ต หรือสมาร์ทโฟน</p>
+               </div>
+               <div class="feature-card">
+                    <div class="feature-icon">
+                         <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>ความปลอดภัยสูง</h3>
+                    <p>ระบบที่มีความปลอดภัยสูง
+                         ข้อมูลทั้งหมดถูกประมวลผลในเครื่องของคุณโดยไม่ส่งข้อมูลออกไปยังเซิร์ฟเวอร์ภายนอก</p>
+               </div>
+          </div>
+     </section>
+
+     <!-- Demo Section -->
+     <section class="demo" id="demo">
+          <div class="demo-content">
+               <div class="demo-text">
+                    <h2>วิธีการใช้งาน</h2>
+                    <p>ระบบตรวจจับวัตถุของเราใช้งานง่ายเพียงไม่กี่ขั้นตอน
+                         คุณสามารถเริ่มต้นได้ทันทีโดยไม่ต้องมีความรู้ด้านเทคนิคมากนัก</p>
+                    <ul>
+                         <li>เปิดระบบตรวจจับวัตถุผ่านเว็บบราวเซอร์</li>
+                         <li>อัปโหลดรูปภาพหรือวิดีโอที่ต้องการตรวจจับ</li>
+                         <li>ปรับแต่งการตั้งค่าตามที่ต้องการ</li>
+                         <li>ระบบจะประมวลผลและแสดงผลลัพธ์ทันที</li>
+                         <li>บันทึกผลลัพธ์หรือส่งออกรายงานได้ตามต้องการ</li>
+                    </ul>
+                    <a href="http://localhost:8501" target="_blank" class="btn btn-primary">ทดลองใช้งานเลย</a>
+               </div>
+               <div class="demo-image">
+                    <img src="../img/Detected-with-YOLO--Schreibtisch-mit-Objekten.jpg"
+                         alt="ตัวอย่างการใช้งาน Object Detection">
+               </div>
+          </div>
+     </section>
+
+     <!-- App Section -->
+     <section class="app" id="app">
+          <div class="section-title">
+               <h2>เริ่มใช้งานระบบ</h2>
+               <p>เข้าถึงระบบตรวจจับวัตถุและแชท AI ได้ง่ายๆ ผ่านลิงก์ด้านล่าง</p>
+          </div>
+          <div class="app-buttons">
+               <a href="http://localhost:8501" target="_blank" class="app-btn">
+                    <i class="fas fa-camera-retro"></i>
+                    <div>
+                         <span>เปิดระบบตรวจจับวัตถุ</span>
+                    </div>
+               </a>
+               <a href="http://localhost:3000" target="_blank" class="app-btn">
+                    <i class="fas fa-hand-paper"></i>
+                    <div>
+                         <span>แชท AI</span>
+                    </div>
+               </a>
+               <a href="../Hand.html" target="_blank" class="app-btn">
+                    <i class="fas fa-hand-paper"></i>
+                    <div>
+                         <span>การจดจำท่าทางสัมผัส</span>
+                    </div>
+               </a>
+               <a href="../speech.html" target="_blank" class="app-btn">
+                    <i class="fas fa-microphone-alt"></i>
+                    <div>
+                         <span>ระบบสังเคราะห์เสียงพูดภาษาไทย</span>
+                    </div>
+               </a>
+
+
+               <a href="../Violence.html" target="_blank" class="app-btn">
+                    <i class="fas fa-image"></i>
+                    <div>
+                         <span>สร้างคำบรรยายภาพด้วย AI</span>
+                    </div>
+               </a>
+               <a href="../T-Food.html" target="_blank" class="app-btn">
+                    <i class="fas fa-utensils"></i>
+                    <div>
+                         <span>อัปโหลดรูปภาพเพื่อวิเคราะห์อาหารไทย</span>
+                    </div>
+               </a>
+          </div>
+     </section>
+
+     <!-- Footer -->
+     <footer id="contact">
+          <div class="footer-content">
+               <div class="footer-column">
+                    <h3>AI By 651413010</h3>
+                    <p>ระบบตรวจจับวัตถุอัจฉริยะด้วย AI ที่ทันสมัย แม่นยำ และใช้งานง่าย</p>
+               </div>
+               <div class="footer-column">
+                    <h3>ลิงก์ด่วน</h3>
+                    <ul>
+                         <li><a href="#features">คุณสมบัติ</a></li>
+                         <li><a href="#demo">การใช้งาน</a></li>
+                         <li><a href="#app">เริ่มใช้งาน</a></li>
+                         <li><a href="#contact">ผู้จัดทำ</a></li>
+                    </ul>
+               </div>
+               <div class="footer-column">
+                    <h3>ผู้จัดทำ</h3>
+                    <ul>
+                         <li>651413010</li>
+                         <li>นางสาวสุกัญญา แสนตา</li>
+                    </ul>
+               </div>
+          </div>
+          <div class="footer-bottom">
+               <p>&copy; 2025 ObjectDetect. สงวนลิขสิทธิ์</p>
+          </div>
+     </footer>
+     <script>
+          // Simple mobile menu toggle
+          document.addEventListener('DOMContentLoaded', function () {
+               const menuBtn = document.querySelector('.mobile-menu-btn');
+               const menu = document.getElementById('menu');
+
+               menuBtn.addEventListener('click', function () {
+                    menu.classList.toggle('show');
+               });
+
+               // Close menu when clicking on menu items
+               const menuItems = document.querySelectorAll('#menu a');
+               menuItems.forEach(item => {
+                    item.addEventListener('click', function () {
+                         menu.classList.remove('show');
+                    });
+               });
+
+               // Smooth scrolling for anchor links
+               document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                         e.preventDefault();
+                         const href = this.getAttribute('href');
+                         if (href === '#') return;
+
+                         const targetElement = document.querySelector(href);
+                         if (targetElement) {
+                              window.scrollTo({
+                                   top: targetElement.offsetTop - 70,
+                                   behavior: 'smooth'
+                              });
+                         }
+                    });
+               });
+          });
+     </script>
+</body>
+
+</html>
